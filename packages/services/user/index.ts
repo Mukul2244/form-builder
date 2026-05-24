@@ -1,29 +1,36 @@
-import { db } from "@repo/database";
+import { randomBytes, createHmac } from "node:crypto";
+import { db, eq } from "@repo/database";
 import { usersTable } from "@repo/database/schema";
-import { env } from "../env";
-import { googleOAuth2Client } from "../clients/google-oauth";
-import { GetAuthenticationMethodOutputSchema } from "./model";
+
+import {
+    createUserWithEmailAndPasswordInput,
+    type CreateUserWithEmailAndPasswordInputType,
+} from "./model";
 
 class UserService {
-  public async getAuthenticationMethods(): Promise<
-    ReadonlyArray<GetAuthenticationMethodOutputSchema>
-  > {
-    const supportedAuthenticationProviders: GetAuthenticationMethodOutputSchema[] = [];
 
-    const isGoogleConfigured = !!(env.GOOGLE_OAUTH_CLIENT_ID && env.GOOGLE_OAUTH_CLIENT_SECRET);
-
-    if (isGoogleConfigured) {
-      const url = googleOAuth2Client.generateAuthUrl();
-      supportedAuthenticationProviders.push({
-        provider: "GOOGLE_OAUTH",
-        displayName: "Google",
-        displayText: "Signin with Google",
-        authUrl: url,
-      });
+    private async getUserByEmail(email: string) {
+        const result = await db.select().from(usersTable).where(eq(usersTable.email, email));
+        if (!result || result.length === 0) return null;
+        return result[0];
     }
+    public async createUserWithEmailAndPassword(payload: CreateUserWithEmailAndPasswordInputType) {
+        const { email, fullName, password } = await createUserWithEmailAndPasswordInput.parseAsync(payload);
+        const existingUser = await this.getUserByEmail(email);
+        if (existingUser) throw new Error(`User with email ${email} already exists`);
 
-    return supportedAuthenticationProviders;
-  }
+        const salt = randomBytes(16).toString("hex");
+        const hash = createHmac("sha256", salt).update(password).digest("hex");
+
+        const userInsertResult = await db.insert(usersTable).values({ email, fullName, password: hash, salt, }).returning({
+            id: usersTable.id,
+        });
+        if(!userInsertResult || userInsertResult.length === 0 || !userInsertResult[0]?.id) throw new Error("Failed to create user");
+
+        return {
+            id: userInsertResult[0].id,
+        }
+    }
 }
 
 export default UserService;
