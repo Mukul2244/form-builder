@@ -6,6 +6,8 @@ import {
     createUserWithEmailAndPasswordInput,
     generateUserTokenPayload,
     GenerateUserTokenPayloadType,
+    signInUserWithEmailAndPasswordInput,
+    SignInUserWithEmailAndPasswordInputType,
     type CreateUserWithEmailAndPasswordInputType,
 } from "./model";
 import * as JWT from "jsonwebtoken";
@@ -24,13 +26,16 @@ class UserService {
         return { token };
 
     }
+    private async generateHash(salt: string, password: string) {
+        return createHmac("sha256", salt).update(password).digest("hex");
+    }
     public async createUserWithEmailAndPassword(payload: CreateUserWithEmailAndPasswordInputType) {
         const { email, fullName, password } = await createUserWithEmailAndPasswordInput.parseAsync(payload);
         const existingUser = await this.getUserByEmail(email);
         if (existingUser) throw new Error(`User with email ${email} already exists`);
 
         const salt = randomBytes(16).toString("hex");
-        const hash = createHmac("sha256", salt).update(password).digest("hex");
+        const hash = await this.generateHash(salt, password);
 
         const userInsertResult = await db.insert(usersTable).values({ email, fullName, password: hash, salt, }).returning({
             id: usersTable.id,
@@ -42,6 +47,22 @@ class UserService {
             id: userId,
             token,
         }
+    }
+    public async signInUserWithEmailAndPassword(payload: SignInUserWithEmailAndPasswordInputType) {
+        const { email, password } = await signInUserWithEmailAndPasswordInput.parseAsync(payload);
+        const existingUser = await this.getUserByEmail(email);
+        if (!existingUser) throw new Error(`User with email ${email} does not exist`);
+
+        if (!existingUser.password || !existingUser.salt) throw new Error("Invalid authentication method.");
+
+        const hash = await this.generateHash(existingUser.salt, password);
+        if (hash !== existingUser.password) throw new Error("Invalid user credentials");
+
+        const { token } = await this.generateUserToken({ id: existingUser.id });
+        return {
+            id: existingUser.id,
+            token
+        };
     }
 }
 
