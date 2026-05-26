@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSignup } from "~/hooks/api/auth";
+import { useRouter } from "next/navigation";
 
 const signupSchema = z
   .object({
@@ -32,6 +33,7 @@ const signupSchema = z
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 export function SignupForm({ className, ...props }: React.ComponentProps<"div">) {
+  const router = useRouter();
   const { createUserWithEmailAndPasswordAsync } = useSignup();
   const {
     register,
@@ -54,6 +56,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
       password: data.password,
     });
     console.log("User Created with ID:", id);
+    router.replace("/dashboard");
   };
 
   return (

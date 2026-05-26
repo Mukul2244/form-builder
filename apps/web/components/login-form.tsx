@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSignIn } from "~/hooks/api/auth";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.email({ message: "Invalid email address" }),
@@ -18,6 +19,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -33,10 +35,11 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 
   const onSubmit = async (data: LoginFormValues) => {
     console.log("Login values:", data);
-    const {id}  = await signInUserWithEmailAndPasswordAsync({
+    const { id } = await signInUserWithEmailAndPasswordAsync({
       email: data.email,
       password: data.password,
     });
+    router.replace("/");
   };
 
   return (

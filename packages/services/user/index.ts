@@ -26,6 +26,27 @@ class UserService {
         return { token };
 
     }
+    private async verifyUserToken(token: string): Promise<GenerateUserTokenPayloadType> {
+        try {
+            const verficationResult = JWT.verify(token, env.JWT_SECRET) as GenerateUserTokenPayloadType;
+            return verficationResult;
+        } catch (error) {
+            throw new Error("Invalid token");
+        }
+    }
+    private async getUserInfoById(id: string) {
+        const user = await db.select({
+            id: usersTable.id,
+            email: usersTable.email,
+            fullName: usersTable.fullName,
+            profileImageUrl: usersTable.profileImageUrl
+        })
+            .from(usersTable)
+            .where(eq(usersTable.id, id))
+            .then(result => result[0]);
+        if (!user) throw new Error("User not found");
+        return user;
+    }
     private async generateHash(salt: string, password: string) {
         return createHmac("sha256", salt).update(password).digest("hex");
     }
@@ -63,6 +84,11 @@ class UserService {
             id: existingUser.id,
             token
         };
+    }
+    public async verifyAndDecodeUserToken(token: string) {
+        const { id } = await this.verifyUserToken(token);
+        const userInfo = await this.getUserInfoById(id);
+        return { ...userInfo };
     }
 }
 
