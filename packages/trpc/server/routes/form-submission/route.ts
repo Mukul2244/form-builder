@@ -34,7 +34,7 @@ export const formSubmissionRouter = router({
     getFormSubmissions: protectedProcedure
         .meta({
             openapi: {
-                method: "POST",
+                method: "GET",
                 path: getPath("/getFormSubmissions"),
                 tags: TAGS,
                 protect: true,
