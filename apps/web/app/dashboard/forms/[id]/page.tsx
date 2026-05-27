@@ -4,6 +4,7 @@ import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 import { useGetFormById } from "~/hooks/api/form";
+import { FormBuilder } from "./form-builder";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { format } from "date-fns";
@@ -71,12 +72,12 @@ export default function EditFormPage() {
         </CardHeader>
         <CardContent>
           <div className="text-sm text-muted-foreground">
-            {/* Add more form editing functionality here later */}
             <p>Form ID: {form.id}</p>
-            <p className="mt-4 italic">Form builder interface coming soon...</p>
           </div>
         </CardContent>
       </Card>
+      
+      <FormBuilder formId={form.id} />
     </div>
   );
 }

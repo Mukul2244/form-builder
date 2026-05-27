@@ -59,7 +59,9 @@ export const useGetFormById = (id: string) => {
         isFetching,
         isLoading,
         status,
-    } = trpc.form.listForms.useQuery();
+    } = trpc.form.getFormById.useQuery({ id }, {
+        enabled: !!id,
+    });
 
     return {
         form,

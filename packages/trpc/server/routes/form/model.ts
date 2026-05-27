@@ -26,6 +26,21 @@ export const listFormsByUserIdOutputModel = z.array(z.object({
 }));
 // #endregion
 
+// #region Get Form By ID
+export const getFormByIdInputModel = z.object({
+  id: z.string().describe("The ID of the form"),
+});
+
+export const getFormByIdOutputModel = z.object({
+  id: z.string().uuid().describe("The ID of the form"),
+  title: z.string().describe("The title of the form"),
+  description: z.string().nullable().describe("The description of the form"),
+  createdBy: z.string().uuid().describe("The ID of the user who created it"),
+  createdAt: z.date().nullable().describe("The creation date of the form"),
+  updatedAt: z.date().nullable().describe("The last updated date of the form")
+});
+// #endregion
+
 // #region Form Fields
 export const createFieldInputModel = z.object({
   formId: z.string().describe("The ID of the form this field belongs to"),

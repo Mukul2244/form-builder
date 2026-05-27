@@ -1,6 +1,6 @@
 import { trpc } from "~/trpc/client";
 
-export const useCreateFormField = () => {
+export const useCreateField = () => {
     const utils = trpc.useUtils();
     const {
         mutateAsync: createFieldAsync,

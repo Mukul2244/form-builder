@@ -14,6 +14,8 @@ import {
     updateFieldOutputModel,
     deleteFieldInputModel,
     deleteFieldOutputModel,
+    getFormByIdInputModel,
+    getFormByIdOutputModel,
 } from "./model";
 
 const TAGS = ["Form"];
@@ -61,7 +63,25 @@ export const formRouter = router({
             return forms;
         }),
     //#endregion
+    // #region get form by id
+    getFormById: protectedProcedure
+        .meta({
+            openapi: {
+                method: "GET",
+                path: getPath("/getFormById"),
+                tags: TAGS,
+                protect: true,
+            },
+        })
+        .input(getFormByIdInputModel)
+        .output(getFormByIdOutputModel)
+        .query(async ({ input, ctx }) => {
+            const userId = ctx.user.id;
 
+            const form = await formService.getFormById(input.id, userId);
+            return form;
+        }),
+    // #endregion
     //#region create Field
     createField: protectedProcedure
         .meta({
