@@ -127,4 +127,15 @@ export const deleteFieldInputModel = z.object({
 export const deleteFieldOutputModel = z.object({
   id: z.string().describe("The ID of the deleted field"),
 });
+
+export const updateFieldOrderInputModel = z.object({
+  updates: z.array(z.object({
+    fieldId: z.string().uuid(),
+    orderIndex: z.string()
+  }))
+});
+
+export const updateFieldOrderOutputModel = z.object({
+  success: z.boolean()
+});
 // #endregion

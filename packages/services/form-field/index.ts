@@ -5,6 +5,7 @@ import {
     getFieldsInput, GetFieldsInputType,
     updateFieldInput, UpdateFieldInputType,
     deleteFieldInput, DeleteFieldInputType,
+    updateFieldOrderInput, UpdateFieldOrderInputType,
 } from "./model";
 
 function toLabelKey(label: string): string {
@@ -105,7 +106,7 @@ class FormFieldService {
 
         const fieldDeleteResult = await db
             .delete(formFieldsTable)
-            .where(eq(formFieldsTable.id, fieldId),)
+            .where(eq(formFieldsTable.id, fieldId))
             .returning({
                 id: formFieldsTable.id,
             });
@@ -117,6 +118,21 @@ class FormFieldService {
         return {
             id: fieldDeleteResult[0].id,
         };
+    }
+
+    public async updateFieldOrder(payload: UpdateFieldOrderInputType) {
+        const { updates } = await updateFieldOrderInput.parseAsync(payload);
+
+        // Run all updates in a transaction
+        await db.transaction(async (tx) => {
+            for (const update of updates) {
+                await tx.update(formFieldsTable)
+                    .set({ orderIndex: update.orderIndex })
+                    .where(eq(formFieldsTable.id, update.fieldId));
+            }
+        });
+
+        return { success: true };
     }
 }
 

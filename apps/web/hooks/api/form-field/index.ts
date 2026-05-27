@@ -134,3 +134,35 @@ export const useDeleteField = () => {
         isPending,
     };
 };
+
+export const useUpdateFieldOrder = () => {
+    const utils = trpc.useUtils();
+    const {
+        mutateAsync: updateFieldOrderAsync,
+        mutate: updateFieldOrder,
+        error,
+        failureCount,
+        isError,
+        isIdle,
+        isSuccess,
+        status,
+        isPending,
+    } = trpc.form.updateFieldOrder.useMutation({
+        onSuccess: async () => {
+            await utils.form.getFields.invalidate();
+            await utils.form.getPublicFields.invalidate();
+        },
+    });
+
+    return {
+        updateFieldOrderAsync,
+        updateFieldOrder,
+        error,
+        failureCount,
+        isError,
+        isIdle,
+        isSuccess,
+        status,
+        isPending,
+    };
+};

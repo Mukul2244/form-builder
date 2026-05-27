@@ -14,6 +14,8 @@ import {
     updateFieldOutputModel,
     deleteFieldInputModel,
     deleteFieldOutputModel,
+    updateFieldOrderInputModel,
+    updateFieldOrderOutputModel,
     getFormByIdInputModel,
     getFormByIdOutputModel,
     getPublicFormByIdInputModel,
@@ -194,6 +196,24 @@ export const formRouter = router({
         .mutation(async ({ input }) => {
             const { id } = await formFieldService.deleteField(input);
             return { id };
+        }),
+    // #endregion
+
+    // #region update field order
+    updateFieldOrder: protectedProcedure
+        .meta({
+            openapi: {
+                method: "PATCH",
+                path: getPath("/updateFieldOrder"),
+                tags: TAGS,
+                protect: true,
+            },
+        })
+        .input(updateFieldOrderInputModel)
+        .output(updateFieldOrderOutputModel)
+        .mutation(async ({ input }) => {
+            const result = await formFieldService.updateFieldOrder(input);
+            return result;
         }),
     // #endregion
 });

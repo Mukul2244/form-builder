@@ -41,5 +41,14 @@ export const deleteFieldInput = z.object({
     fieldId: z.string().describe("The ID of the field to delete"),
 });
 export type DeleteFieldInputType = z.infer<typeof deleteFieldInput>;
+// #endregion
 
+// #region update field order
+export const updateFieldOrderInput = z.object({
+    updates: z.array(z.object({
+        fieldId: z.string().uuid(),
+        orderIndex: z.string()
+    }))
+});
+export type UpdateFieldOrderInputType = z.infer<typeof updateFieldOrderInput>;
 // #endregion

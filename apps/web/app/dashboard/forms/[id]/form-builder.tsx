@@ -1,16 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
-import { PlusIcon, PencilIcon, TrashIcon } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { PlusIcon, PencilIcon, TrashIcon, GripVerticalIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+import {
   useCreateField,
   useGetFields,
   useUpdateField,
   useDeleteField,
+  useUpdateFieldOrder,
 } from "~/hooks/api/form-field";
 
 import { Button } from "~/components/ui/button";
@@ -55,19 +74,111 @@ const formFieldSchema = z.object({
   description: z.string().optional(),
   placeholder: z.string().optional(),
   type: z.enum(fieldTypes),
-  isRequired: z.boolean().default(false),
+  isRequired: z.boolean(),
 });
 
 type FormFieldValues = z.infer<typeof formFieldSchema>;
+
+function SortableRow({ 
+  field, 
+  handleOpenEdit, 
+  handleDelete, 
+  isDeleting 
+}: { 
+  field: any, 
+  handleOpenEdit: (f: any) => void, 
+  handleDelete: (id: string) => void,
+  isDeleting: boolean
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: field.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell className="w-8 px-2 cursor-grab" {...attributes} {...listeners}>
+        <GripVerticalIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+      </TableCell>
+      <TableCell className="font-medium">{field.label}</TableCell>
+      <TableCell>{field.type}</TableCell>
+      <TableCell>{field.isRequired ? "Yes" : "No"}</TableCell>
+      <TableCell className="text-right space-x-2">
+        <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(field)}>
+          <PencilIcon className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => handleDelete(field.id)} disabled={isDeleting}>
+          <TrashIcon className="h-4 w-4 text-red-500" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+}
 
 export function FormBuilder({ formId }: { formId: string }) {
   const { fields, isLoading, error } = useGetFields(formId);
   const { createFieldAsync, isPending: isCreating } = useCreateField();
   const { updateFieldAsync, isPending: isUpdating } = useUpdateField();
   const { deleteFieldAsync, isPending: isDeleting } = useDeleteField();
+  const { updateFieldOrderAsync, isPending: isReordering } = useUpdateFieldOrder();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+  
+  const [items, setItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (fields) {
+      setItems([...fields].sort((a, b) => parseFloat(a.orderIndex || "0") - parseFloat(b.orderIndex || "0")));
+    }
+  }, [fields]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex((i) => i.id === active.id);
+      const newIndex = items.findIndex((i) => i.id === over.id);
+
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      
+      const newItemsWithOrder = newItems.map((item, index) => ({
+        ...item,
+        orderIndex: (index + 1).toFixed(2),
+      }));
+
+      setItems(newItemsWithOrder); // Optimistic update
+
+      const updates = newItemsWithOrder.map((item) => ({
+        fieldId: item.id,
+        orderIndex: item.orderIndex,
+      }));
+
+      try {
+        await updateFieldOrderAsync({ updates });
+        // Don't need toast for every drag, but you could add one here
+      } catch (e) {
+        toast.error("Failed to save field order");
+      }
+    }
+  };
 
   const form = useForm<FormFieldValues>({
     resolver: zodResolver(formFieldSchema),
@@ -272,33 +383,39 @@ export function FormBuilder({ formId }: { formId: string }) {
         ) : fields?.length === 0 ? (
           <p className="text-muted-foreground text-sm">No fields added yet.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Label</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Required</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {fields?.map((field) => (
-                <TableRow key={field.id}>
-                  <TableCell className="font-medium">{field.label}</TableCell>
-                  <TableCell>{field.type}</TableCell>
-                  <TableCell>{field.isRequired ? "Yes" : "No"}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(field)}>
-                      <PencilIcon className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(field.id)} disabled={isDeleting}>
-                      <TrashIcon className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </TableCell>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-8"></TableHead>
+                  <TableHead>Label</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Required</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                <SortableContext
+                  items={items.map(i => i.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {items.map((field) => (
+                    <SortableRow
+                      key={field.id}
+                      field={field}
+                      handleOpenEdit={handleOpenEdit}
+                      handleDelete={handleDelete}
+                      isDeleting={isDeleting}
+                    />
+                  ))}
+                </SortableContext>
+              </TableBody>
+            </Table>
+          </DndContext>
         )}
       </CardContent>
     </Card>
