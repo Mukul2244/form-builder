@@ -2,12 +2,14 @@
 
 import { use, useState } from "react";
 import { useGetPublicFormById } from "~/hooks/api/form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { useSubmitForm } from "~/hooks/api/form-submission";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
 import { Switch } from "~/components/ui/switch";
 import { Skeleton } from "~/components/ui/skeleton";
+import { toast } from "sonner";
 
 interface PageProps {
     params: Promise<{
@@ -18,7 +20,8 @@ interface PageProps {
 export default function PublicFormPage({ params }: PageProps) {
     const { form_id } = use(params);
     const { form, isLoading, error } = useGetPublicFormById(form_id);
-    const [submitting, setSubmitting] = useState(false);
+    const { submitFormAsync, isPending: submitting } = useSubmitForm();
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
     if (isLoading) {
         return (
@@ -58,13 +61,63 @@ export default function PublicFormPage({ params }: PageProps) {
         return parseFloat(a.orderIndex || "0") - parseFloat(b.orderIndex || "0");
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Placeholder for submission logic
-        setSubmitting(true);
-        setTimeout(() => setSubmitting(false), 1000);
-        alert("Form functionality is working UI-wise! (Data Submission Hook next)");
+        
+        const formData = new FormData(e.currentTarget);
+        const values = sortedFields.map(field => {
+            let extractedValue = formData.get(field.id) as string;
+            
+            // Switch uses 'on' default value natively when checked, otherwise null 
+            if (field.type === "YES_NO") {
+                extractedValue = formData.get(field.id) === "on" ? "true" : "false";
+            }
+
+            return {
+                fieldId: field.id,
+                value: extractedValue || "",
+            }
+        });
+
+        try {
+            await submitFormAsync({
+                formId: form.id,
+                values
+            });
+            setIsSubmitted(true);
+            toast.success("Form submitted successfully!");
+        } catch (err) {
+            toast.error("Failed to submit form. Please try again.");
+        }
     };
+
+    if (isSubmitted) {
+        return (
+            <div className="flex items-center justify-center min-h-screen p-4 bg-muted/30">
+                <Card className="w-full max-w-xl text-center shadow-lg pt-6">
+                    <CardHeader>
+                        <div className="mx-auto bg-green-100 text-green-600 rounded-full p-3 w-16 h-16 flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <CardTitle className="text-2xl">Thank You!</CardTitle>
+                        <CardDescription className="text-base mt-2">
+                            Your response has been recorded successfully.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardFooter className="justify-center pb-8">
+                        <Button variant="outline" onClick={() => {
+                            setIsSubmitted(false);
+                            // Optional: Reset form by reloading or explicitly clearing fields here
+                        }}>
+                            Submit another response
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </div>
+        )
+    }
 
     return (
         <div className="flex items-center justify-center min-h-screen p-4 bg-muted/30">
@@ -92,7 +145,7 @@ export default function PublicFormPage({ params }: PageProps) {
                                 {field.type === "TEXT" && (
                                     <Input
                                         id={field.id}
-                                        name={field.labelKey}
+                                        name={field.id}
                                         placeholder={field.placeholder || ""}
                                         required={field.isRequired}
                                         type="text"
@@ -101,7 +154,7 @@ export default function PublicFormPage({ params }: PageProps) {
                                 {field.type === "NUMBER" && (
                                     <Input
                                         id={field.id}
-                                        name={field.labelKey}
+                                        name={field.id}
                                         placeholder={field.placeholder || ""}
                                         required={field.isRequired}
                                         type="number"
@@ -110,7 +163,7 @@ export default function PublicFormPage({ params }: PageProps) {
                                 {field.type === "EMAIL" && (
                                     <Input
                                         id={field.id}
-                                        name={field.labelKey}
+                                        name={field.id}
                                         placeholder={field.placeholder || ""}
                                         required={field.isRequired}
                                         type="email"
@@ -119,7 +172,7 @@ export default function PublicFormPage({ params }: PageProps) {
                                 {field.type === "PASSWORD" && (
                                     <Input
                                         id={field.id}
-                                        name={field.labelKey}
+                                        name={field.id}
                                         placeholder={field.placeholder || ""}
                                         required={field.isRequired}
                                         type="password"
@@ -127,7 +180,7 @@ export default function PublicFormPage({ params }: PageProps) {
                                 )}
                                 {field.type === "YES_NO" && (
                                     <div className="flex items-center space-x-2">
-                                        <Switch id={field.id} name={field.labelKey} required={field.isRequired} />
+                                        <Switch id={field.id} name={field.id} required={field.isRequired} />
                                         <Label htmlFor={field.id}>Yes</Label>
                                     </div>
                                 )}
