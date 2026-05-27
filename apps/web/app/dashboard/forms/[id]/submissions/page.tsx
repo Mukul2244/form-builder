@@ -92,10 +92,13 @@ function FormSubmissions() {
 
   return (
     <div className="flex flex-col gap-4 p-4 md:gap-8 md:p-8">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.push(`/dashboard/forms/${formId}`)}>
-          <ArrowLeftIcon className="h-4 w-4" />
+      <div>
+        <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/forms/${formId}`)} className="mb-4">
+          <ArrowLeftIcon className="mr-2 h-4 w-4" />
+          Back to Editor
         </Button>
+      </div>
+      <div className="flex items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Responses: {form.title}</h1>
           <p className="text-muted-foreground text-sm">

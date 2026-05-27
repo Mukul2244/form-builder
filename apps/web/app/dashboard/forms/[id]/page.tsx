@@ -65,11 +65,14 @@ export default function EditFormPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 md:gap-8 md:p-8">
+      <div>
+        <Button variant="outline" size="sm" onClick={() => router.push("/dashboard/forms")} className="mb-4">
+          <ArrowLeftIcon className="mr-2 h-4 w-4" />
+          Back to Forms
+        </Button>
+      </div>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => router.push("/dashboard/forms")}>
-            <ArrowLeftIcon className="h-4 w-4" />
-          </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Edit Form: {form.title}</h1>
             {form.createdAt && (

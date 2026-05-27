@@ -1,10 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Button } from "~/components/ui/button"
 import { Separator } from "~/components/ui/separator"
 import { SidebarTrigger } from "~/components/ui/sidebar"
 import { ThemeToggle } from "~/components/theme-toggle"
+import { ThemeColorSwitcher } from "~/components/theme-color-switcher"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -62,6 +62,7 @@ export function SiteHeader() {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="ml-auto flex items-center gap-2">
+          <ThemeColorSwitcher />
           <ThemeToggle />
         </div>
       </div>
