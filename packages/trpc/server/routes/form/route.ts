@@ -4,10 +4,8 @@ import { generatePath } from "../../utils/path-generator";
 import {
     createFormInputModel,
     createFormOutputModel,
-    getFormByIdInputModel,
-    getFormByIdOutputModel,
-    getFormsInputModel,
-    getFormsOutputModel,
+    listFormsByUserIdInputModel,
+    listFormsByUserIdOutputModel,
 } from "./model";
 
 const TAGS = ["Form"];
@@ -21,7 +19,7 @@ export const formRouter = router({
                 method: "POST",
                 path: getPath("/createForm"),
                 tags: TAGS,
-                protect : true,
+                protect: true,
             },
         })
         .input(createFormInputModel)
@@ -35,37 +33,22 @@ export const formRouter = router({
             return { id };
         }),
 
-    getForms: protectedProcedure
+    // list forms
+    listForms: protectedProcedure
         .meta({
             openapi: {
                 method: "GET",
-                path: getPath("/getForms"),
+                path: getPath("/listForms"),
                 tags: TAGS,
+                protect: true,
             },
         })
-        .input(getFormsInputModel)
-        .output(getFormsOutputModel)
+        .input(listFormsByUserIdInputModel)
+        .output(listFormsByUserIdOutputModel)
         .query(async ({ ctx }) => {
             const userId = ctx.user.id;
 
-            const forms = await formService.getFormsByUserId(userId);
+            const forms = await formService.listFormsByUserId({ userId });
             return forms;
-        }),
-
-    getFormById: protectedProcedure
-        .meta({
-            openapi: {
-                method: "GET",
-                path: getPath("/getFormById"),
-                tags: TAGS,
-            },
-        })
-        .input(getFormByIdInputModel)
-        .output(getFormByIdOutputModel)
-        .query(async ({ input, ctx }) => {
-            const userId = ctx.user.id;
-
-            const form = await formService.getFormById(input.id, userId);
-            return form;
         }),
 });
