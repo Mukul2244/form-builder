@@ -51,6 +51,28 @@ export const useGetFields = (formId: string) => {
     };
 };
 
+export const useGetPublicFields = (formId: string) => {
+    const {
+        data: fields,
+        error,
+        isFetched,
+        isFetching,
+        isLoading,
+        status,
+    } = trpc.form.getPublicFields.useQuery({ formId }, {
+        enabled: !!formId,
+    });
+
+    return {
+        fields,
+        error,
+        isFetched,
+        isFetching,
+        isLoading,
+        status,
+    };
+};
+
 export const useUpdateField = () => {
     const utils = trpc.useUtils();
     const {

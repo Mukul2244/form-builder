@@ -72,3 +72,25 @@ export const useGetFormById = (id: string) => {
         status,
     };
 };
+
+export const useGetPublicFormById = (id: string) => {
+    const {
+        data: form,
+        error,
+        isFetched,
+        isFetching,
+        isLoading,
+        status,
+    } = trpc.form.getPublicFormById.useQuery({ id }, {
+        enabled: !!id,
+    });
+
+    return {
+        form,
+        error,
+        isFetched,
+        isFetching,
+        isLoading,
+        status,
+    };
+};
