@@ -1,6 +1,11 @@
 import { db, eq } from "@repo/database";
 import { formsTable } from "@repo/database/schema";
-import { createFormInput, listFormsByUserIdInput, ListFormsByUserIdInputType, type CreateFormInputType } from "./model";
+import { 
+    createFormInput, 
+    listFormsByUserIdInput, 
+   type ListFormsByUserIdInputType, 
+    type CreateFormInputType
+} from "./model";
 
 class FormService {
     public async createForm(payload: CreateFormInputType) {
