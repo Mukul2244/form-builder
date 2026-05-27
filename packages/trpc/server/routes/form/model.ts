@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+const fieldTypeEnum = z.enum(["TEXT", "NUMBER", "EMAIL", "YES_NO", "PASSWORD"]);
+
 // #region Create Form
 export const createFormInputModel = z.object({
   title: z.string().min(1).max(55).describe("The title of the form"),
@@ -22,4 +24,58 @@ export const listFormsByUserIdOutputModel = z.array(z.object({
   createdAt: z.date().nullable().describe("The creation date of the form"),
   updatedAt: z.date().nullable().describe("The last updated date of the form")
 }));
+// #endregion
+
+// #region Form Fields
+export const createFieldInputModel = z.object({
+  formId: z.string().describe("The ID of the form this field belongs to"),
+  label: z.string().min(1).max(100).describe("The label of the field"),
+  type: fieldTypeEnum.describe("The type of the field"),
+  description: z.string().optional().describe("Optional description for the field"),
+  placeholder: z.string().optional().describe("Optional placeholder text"),
+  isRequired: z.boolean().optional().default(false).describe("Whether the field is required"),
+});
+
+export const createFieldOutputModel = z.object({
+  id: z.string().describe("The ID of the created field"),
+});
+
+export const getFieldsInputModel = z.object({
+    formId: z.string().describe("The ID of the form to list fields for"),
+});
+
+export const getFieldsOutputModel = z.array(z.object({
+  id: z.string().uuid(),
+  formId: z.string().uuid(),
+  label: z.string(),
+  labelKey: z.string(),
+  description: z.string().nullable(),
+  placeholder: z.string().nullable(),
+  isRequired: z.boolean(),
+  orderIndex: z.string().nullable(),
+  type: z.string(),
+  createdAt: z.date().nullable(),
+  updatedAt: z.date().nullable(),
+}));
+
+export const updateFieldInputModel = z.object({
+  fieldId: z.string().describe("The ID of the field to update"),
+  label: z.string().min(1).max(100).optional(),
+  type: fieldTypeEnum.optional(),
+  description: z.string().optional().nullable(),
+  placeholder: z.string().optional().nullable(),
+  isRequired: z.boolean().optional(),
+});
+
+export const updateFieldOutputModel = z.object({
+  id: z.string().describe("The ID of the updated field"),
+});
+
+export const deleteFieldInputModel = z.object({
+  fieldId: z.string().describe("The ID of the field to delete"),
+});
+
+export const deleteFieldOutputModel = z.object({
+  id: z.string().describe("The ID of the deleted field"),
+});
 // #endregion
