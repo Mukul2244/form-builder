@@ -4,12 +4,12 @@ import { generatePath } from "../../utils/path-generator";
 import {
     submitFormInputModel,
     submitFormOutputModel,
-    getSubmissionsInputModel,
-    getSubmissionsOutputModel,
+    getFormSubmissionsInputModel,
+    getFormSubmissionsOutputModel,
 } from "./model";
 
-const TAGS = ["FormSubmission"];
-const getPath = generatePath("/form-submission");
+const TAGS = ["Form"];
+const getPath = generatePath("/form");
 
 export const formSubmissionRouter = router({
     //#region submit form
@@ -31,22 +31,22 @@ export const formSubmissionRouter = router({
     //#endregion
 
     //#region get submissions
-    getSubmissions: protectedProcedure
+    getFormSubmissions: protectedProcedure
         .meta({
             openapi: {
-                method: "GET",
-                path: getPath("/getSubmissions"),
+                method: "POST",
+                path: getPath("/getFormSubmissions"),
                 tags: TAGS,
                 protect: true,
             },
         })
-        .input(getSubmissionsInputModel)
-        .output(getSubmissionsOutputModel)
+        .input(getFormSubmissionsInputModel)
+        .output(getFormSubmissionsOutputModel)
         .query(async ({ input, ctx }) => {
             const userId = ctx.user.id;
-            const submissions = await formSubmissionService.getSubmissions(input, userId);
-            
-            return submissions as any;
+            const submissions = await formSubmissionService.getFormSubmissions(input, userId);
+
+            return submissions;
         }),
     //#endregion
 });

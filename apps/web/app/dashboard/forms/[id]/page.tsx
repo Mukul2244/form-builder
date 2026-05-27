@@ -80,6 +80,9 @@ export default function EditFormPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => router.push(`/dashboard/forms/${formId}/submissions`)}>
+            View Responses
+          </Button>
           <Button variant="outline" onClick={handleCopyLink}>
             <CopyIcon className="mr-2 h-4 w-4" />
             Copy Public Link

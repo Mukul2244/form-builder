@@ -34,7 +34,7 @@ export const useGetSubmissions = (formId: string) => {
         isFetching,
         isLoading,
         status,
-    } = trpc.formSubmission.getSubmissions.useQuery({ formId }, {
+    } = trpc.formSubmission.getFormSubmissions.useQuery({ formId }, {
         enabled: !!formId,
     });
 

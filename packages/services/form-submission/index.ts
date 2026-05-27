@@ -1,8 +1,8 @@
-import { db, eq } from "@repo/database";
+import { db, desc, eq } from "@repo/database";
 import { formSubmissionTable, formsTable } from "@repo/database/schema";
-import { 
+import {
     submitFormInput, SubmitFormInputType,
-    getSubmissionsInput, GetSubmissionsInputType
+    getFormSubmissionsInput, GetFormSubmissionsInputType
 } from "./model";
 
 class FormSubmissionService {
@@ -35,8 +35,8 @@ class FormSubmissionService {
         }
     }
 
-    public async getSubmissions(payload: GetSubmissionsInputType, userId: string) {
-        const { formId } = await getSubmissionsInput.parseAsync(payload);
+    public async getFormSubmissions(payload: GetFormSubmissionsInputType, userId: string) {
+        const { formId } = await getFormSubmissionsInput.parseAsync(payload);
 
         // Verify that the user requesting the submissions is the owner of the form
         const form = await db
@@ -49,9 +49,14 @@ class FormSubmissionService {
         }
 
         const submissions = await db
-            .select()
+            .select({
+                id: formSubmissionTable.id,
+                values: formSubmissionTable.values,
+                createdAt: formSubmissionTable.createdAt,
+            })
             .from(formSubmissionTable)
-            .where(eq(formSubmissionTable.formId, formId));
+            .where(eq(formSubmissionTable.formId, formId))
+            .orderBy(desc(formSubmissionTable.createdAt));
 
         return submissions;
     }

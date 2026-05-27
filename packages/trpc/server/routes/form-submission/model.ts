@@ -1,32 +1,30 @@
 import { z } from "zod";
 
 export const formSubmissionValueOutputModel = z.object({
-  id: z.string().uuid().optional(),
-  fieldId: z.string(),
-  value: z.string(),
+    fieldId: z.string(),
+    value: z.string(),
 });
 
 export const submitFormInputModel = z.object({
-  formId: z.string().uuid(),
-  values: z.array(z.object({
-      fieldId: z.string(),
-      value: z.string(),
-  })),
+    formId: z.string().uuid(),
+    values: z.array(z.object({
+        fieldId: z.string(),
+        value: z.string(),
+    })),
 });
 
 export const submitFormOutputModel = z.object({
-  id: z.string().uuid(),
-  success: z.boolean(),
+    id: z.string().uuid(),
+    success: z.boolean(),
 });
 
-export const getSubmissionsInputModel = z.object({
-  formId: z.string().uuid(),
+export const getFormSubmissionsInputModel = z.object({
+    formId: z.string().describe("UUID of the form"),
 });
 
-export const getSubmissionsOutputModel = z.array(z.object({
-  id: z.string().uuid(),
-  formId: z.string().uuid(),
-  values: z.any(),
-  createdAt: z.date().nullable().optional(),
-  updatedAt: z.date().nullable().optional(),
-}));
+export const getFormSubmissionsOutputModel = z.array(
+    z.object({
+        id: z.string(),
+        createdAt: z.date().nullable(),
+        values: z.array(formSubmissionValueOutputModel).nullable(),
+    }));

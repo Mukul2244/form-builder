@@ -14,8 +14,8 @@ export const submitFormInput = z.object({
 
 export type SubmitFormInputType = z.infer<typeof submitFormInput>;
 
-export const getSubmissionsInput = z.object({
+export const getFormSubmissionsInput = z.object({
     formId: z.string().describe("The ID of the form to view submissions for"),
 });
 
-export type GetSubmissionsInputType = z.infer<typeof getSubmissionsInput>;
+export type GetFormSubmissionsInputType = z.infer<typeof getFormSubmissionsInput>;
