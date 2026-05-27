@@ -1,5 +1,5 @@
 import { formService, formFieldService } from "../../services";
-import { protectedProcedure, router } from "../../trpc";
+import { protectedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
 import {
     createFormInputModel,
@@ -16,6 +16,8 @@ import {
     deleteFieldOutputModel,
     getFormByIdInputModel,
     getFormByIdOutputModel,
+    getPublicFormByIdInputModel,
+    getPublicFormByIdOutputModel,
 } from "./model";
 
 const TAGS = ["Form"];
@@ -82,6 +84,25 @@ export const formRouter = router({
             return form;
         }),
     // #endregion
+
+    // #region get public form by id
+    getPublicFormById: publicProcedure
+        .meta({
+            openapi: {
+                method: "GET",
+                path: getPath("/getPublicFormById"),
+                tags: TAGS,
+                protect: false,
+            },
+        })
+        .input(getPublicFormByIdInputModel)
+        .output(getPublicFormByIdOutputModel)
+        .query(async ({ input }) => {
+            const form = await formService.getPublicFormById(input.id);
+            return form;
+        }),
+    // #endregion
+
     //#region create Field
     createField: protectedProcedure
         .meta({
@@ -118,7 +139,24 @@ export const formRouter = router({
             const fields = await formFieldService.getFormFields(input, userId);
             
             // map or cast if needed, db select returns the correct type here
-            return fields;
+            return fields as any;
+        }),
+
+    // #region get public form fields
+    getPublicFields: publicProcedure
+        .meta({
+            openapi: {
+                method: "GET",
+                path: getPath("/getPublicFields"),
+                tags: TAGS,
+                protect: false,
+            },
+        })
+        .input(getFieldsInputModel)
+        .output(getFieldsOutputModel)
+        .query(async ({ input }) => {
+            const fields = await formFieldService.getFormFields(input, "");
+            return fields as any;
         }),
     // #endregion
 

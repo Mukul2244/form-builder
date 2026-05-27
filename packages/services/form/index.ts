@@ -1,5 +1,5 @@
 import { db, eq } from "@repo/database";
-import { formsTable } from "@repo/database/schema";
+import { formsTable, formFieldsTable } from "@repo/database/schema";
 import { 
     createFormInput, 
     listFormsByUserIdInput, 
@@ -64,7 +64,46 @@ class FormService {
             throw new Error("Unauthorized to access this form");
         }
 
-        return form;
+        const fields = await db
+            .select()
+            .from(formFieldsTable)
+            .where(eq(formFieldsTable.formId, formId))
+            .orderBy(formFieldsTable.orderIndex);
+
+        return { ...form, fields };
+    }
+
+    public async getPublicFormById(formId: string) {
+        const result = await db
+            .select({
+                id: formsTable.id,
+                title: formsTable.title,
+                description: formsTable.description,
+            })
+            .from(formsTable)
+            .where(eq(formsTable.id, formId));
+
+        const form = result?.[0];
+        if (!form) {
+            throw new Error("Form not found");
+        }
+
+        const fields = await db
+            .select({
+                id: formFieldsTable.id,
+                label: formFieldsTable.label,
+                labelKey: formFieldsTable.labelKey,
+                description: formFieldsTable.description,
+                placeholder: formFieldsTable.placeholder,
+                isRequired: formFieldsTable.isRequired,
+                orderIndex: formFieldsTable.orderIndex,
+                type: formFieldsTable.type,
+            })
+            .from(formFieldsTable)
+            .where(eq(formFieldsTable.formId, formId))
+            .orderBy(formFieldsTable.orderIndex);
+
+        return { ...form, fields };
     }
 }
 

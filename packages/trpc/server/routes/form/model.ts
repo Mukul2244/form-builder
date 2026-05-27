@@ -32,12 +32,46 @@ export const getFormByIdInputModel = z.object({
 });
 
 export const getFormByIdOutputModel = z.object({
-  id: z.string().uuid().describe("The ID of the form"),
+  id: z.string().describe("The ID of the form"),
   title: z.string().describe("The title of the form"),
   description: z.string().nullable().describe("The description of the form"),
   createdBy: z.string().uuid().describe("The ID of the user who created it"),
   createdAt: z.date().nullable().describe("The creation date of the form"),
-  updatedAt: z.date().nullable().describe("The last updated date of the form")
+  updatedAt: z.date().nullable().describe("The last updated date of the form"),
+  fields: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    labelKey: z.string(),
+    description: z.string().nullable(),
+    placeholder: z.string().nullable(),
+    isRequired: z.boolean(),
+    orderIndex: z.string().nullable(),
+    type: z.string(),
+    createdAt: z.date().nullable().optional(),
+    updatedAt: z.date().nullable().optional(),
+  }))
+});
+// #endregion
+
+// #region Get Public Form By ID
+export const getPublicFormByIdInputModel = z.object({
+  id: z.string().describe("The ID of the form"),
+});
+
+export const getPublicFormByIdOutputModel = z.object({
+  id: z.string().uuid().describe("The ID of the form"),
+  title: z.string().describe("The title of the form"),
+  description: z.string().nullable().describe("The description of the form"),
+  fields: z.array(z.object({
+    id: z.string().uuid(),
+    label: z.string(),
+    labelKey: z.string(),
+    description: z.string().nullable(),
+    placeholder: z.string().nullable(),
+    isRequired: z.boolean(),
+    orderIndex: z.string().nullable(),
+    type: z.string(),
+  }))
 });
 // #endregion
 
