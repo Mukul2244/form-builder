@@ -15,6 +15,20 @@
       "when": 1779553234209,
       "tag": "0001_tired_human_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779855814292,
+      "tag": "0002_breezy_frightful_four",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779862086925,
+      "tag": "0003_crazy_reptil",
+      "breakpoints": true
     }
   ]
 }
