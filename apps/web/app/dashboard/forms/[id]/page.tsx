@@ -2,12 +2,13 @@
 
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import { useGetFormById } from "~/hooks/api/form";
 import { FormBuilder } from "./form-builder";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export default function EditFormPage() {
   const params = useParams();
@@ -15,6 +16,21 @@ export default function EditFormPage() {
   const formId = params.id as string;
   
   const { form, isLoading, error } = useGetFormById(formId);
+
+  const handleCopyLink = () => {
+    if (typeof window !== "undefined") {
+      const url = `${window.location.origin}/form/${formId}`;
+      navigator.clipboard.writeText(url);
+      toast.success("Public form link copied to clipboard!");
+    }
+  };
+
+  const handleOpenLink = () => {
+    if (typeof window !== "undefined") {
+      const url = `${window.location.origin}/form/${formId}`;
+      window.open(url, "_blank");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -49,17 +65,29 @@ export default function EditFormPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 md:gap-8 md:p-8">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.push("/dashboard/forms")}>
-          <ArrowLeftIcon className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Edit Form: {form.title}</h1>
-          {form.createdAt && (
-            <p className="text-muted-foreground text-sm">
-              Created on {format(new Date(form.createdAt), "PPP")}
-            </p>
-          )}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" onClick={() => router.push("/dashboard/forms")}>
+            <ArrowLeftIcon className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Edit Form: {form.title}</h1>
+            {form.createdAt && (
+              <p className="text-muted-foreground text-sm">
+                Created on {format(new Date(form.createdAt), "PPP")}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleCopyLink}>
+            <CopyIcon className="mr-2 h-4 w-4" />
+            Copy Public Link
+          </Button>
+          <Button variant="default" onClick={handleOpenLink}>
+            <ExternalLinkIcon className="mr-2 h-4 w-4" />
+            View Form
+          </Button>
         </div>
       </div>
 
