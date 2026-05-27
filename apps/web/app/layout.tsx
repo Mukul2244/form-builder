@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-// @ts-expect-error CSS modules are handled by Next.js.
 import "./globals.css";
 import { GlobalProviders } from "~/providers/global";
 
