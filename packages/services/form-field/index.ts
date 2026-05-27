@@ -125,6 +125,13 @@ class FormFieldService {
 
         // Run all updates in a transaction
         await db.transaction(async (tx) => {
+            // First pass: set to negative orderIndex to avoid unique constraint violations temporarily
+            for (const update of updates) {
+                await tx.update(formFieldsTable)
+                    .set({ orderIndex: `-${update.orderIndex}` })
+                    .where(eq(formFieldsTable.id, update.fieldId));
+            }
+            // Second pass: set to the correct positive orderIndex
             for (const update of updates) {
                 await tx.update(formFieldsTable)
                     .set({ orderIndex: update.orderIndex })
