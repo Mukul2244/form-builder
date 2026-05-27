@@ -5,9 +5,19 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
-import { useCreateForm } from "~/hooks/api/form";
+import { format } from "date-fns";
+import { useCreateForm, useGetForms } from "~/hooks/api/form";
 import { Button } from "~/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +47,7 @@ type FormValues = z.infer<typeof formSchema>;
 function FormPage() {
   const [open, setOpen] = useState(false);
   const { createFormAsync, isPending } = useCreateForm();
+  const { forms, isLoading, error } = useGetForms();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -127,7 +138,47 @@ function FormPage() {
         </Dialog>
       </div>
 
-      {/* TODO: Add forms list here later */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="flex flex-col">
+              <CardHeader>
+                <div className="h-6 w-2/3 animate-pulse rounded bg-muted" />
+                <div className="h-4 w-1/2 animate-pulse rounded bg-muted mt-2" />
+              </CardHeader>
+              <CardContent className="flex-1" />
+              <CardFooter>
+                <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
+              </CardFooter>
+            </Card>
+          ))
+        ) : error ? (
+          <div className="col-span-full py-8 text-center text-red-500">Failed to load forms.</div>
+        ) : forms?.length === 0 ? (
+          <div className="col-span-full py-8 text-center text-muted-foreground">
+            No forms found. Create one to get started.
+          </div>
+        ) : (
+          forms?.map((formItem) => (
+            <Link key={formItem.id} href={`/dashboard/forms/${formItem.id}`}>
+              <Card className="flex flex-col h-full transition-colors hover:bg-muted/50 cursor-pointer">
+                <CardHeader>
+                  <CardTitle className="truncate">{formItem.title}</CardTitle>
+                  <CardDescription className="line-clamp-2">
+                    {formItem.description || "No description provided."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1" />
+                <CardFooter className="text-sm text-muted-foreground">
+                  {formItem.createdAt ? (
+                    <span>Created on {format(new Date(formItem.createdAt), "PPP")}</span>
+                  ) : null}
+                </CardFooter>
+              </Card>
+            </Link>
+          ))
+        )}
+      </div>
     </div>
   );
 }

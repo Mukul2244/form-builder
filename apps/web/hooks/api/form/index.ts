@@ -14,7 +14,7 @@ export const useCreateForm = () => {
         isPending,
     } = trpc.form.createForm.useMutation({
         onSuccess: async () => {
-            await utils.form.getForms.invalidate();
+            await utils.form.listForms.invalidate();
         },
     });
 
@@ -28,5 +28,45 @@ export const useCreateForm = () => {
         isSuccess,
         status,
         isPending,
+    };
+};
+
+export const useGetForms = () => {
+    const {
+        data: forms,
+        error,
+        isFetched,
+        isFetching,
+        isLoading,
+        status,
+    } = trpc.form.listForms.useQuery();
+
+    return {
+        forms,
+        error,
+        isFetched,
+        isFetching,
+        isLoading,
+        status,
+    };
+};
+
+export const useGetFormById = (id: string) => {
+    const {
+        data: form,
+        error,
+        isFetched,
+        isFetching,
+        isLoading,
+        status,
+    } = trpc.form.listForms.useQuery();
+
+    return {
+        form,
+        error,
+        isFetched,
+        isFetching,
+        isLoading,
+        status,
     };
 };
